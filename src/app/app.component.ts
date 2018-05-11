@@ -61,9 +61,9 @@ heatmapLayer = new HeatmapOverlay({
     maxOpacity: 0.8,
     scaleRadius: true,
     useLocalExtrema: true,
-    latField: 'lat',
+    latField: 'hsc_lat',
     lngField: 'lng',
-    valueField: 'count'
+    valueField: 'intenstiy'
   });
 
   options = {
@@ -82,9 +82,9 @@ heatmapLayer = new HeatmapOverlay({
   onMapReady(map: L.Map) {
     map.on('mousemove', (event: L.LeafletMouseEvent) => {
       this.data.data.push({
-        lat: event.latlng.lat,
+        hsc_lat: event.latlng.lat,
         lng: event.latlng.lng,
-        count: 1
+        intenstiy: 1
       });
       this.heatmapLayer.setData(this.data);
       
