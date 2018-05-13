@@ -1,5 +1,22 @@
-<div class="map"
-     leaflet
-     [leafletOptions]="options"
-     (leafletMapReady)="onMapReady($event)">
+<div class="container">
+<div class="row">
+    <div class="col-sm-4 col-md-4 col-lg-4">
+        <select class="form-control" [(ngModel)] = "selectedStore" name="selectedStore" (change) = "onStoreChange(selectedStore)"> 
+            <option *ngFor="let gStoreDropdownMap of gStoreDropdownMaps"  [ngValue]="gStoreDropdownMap.storeId"> {{gStoreDropdownMap.name}} </option>
+        </select>
+    </div>
 </div>
+<p>&nbsp;</p>
+<div class="row">
+    <div class="col-sm-12 col-md-12 col-lg-12">
+        <div id="hsc_map"
+            leaflet
+            [leafletOptions]="options"
+            (leafletMapReady)="onMapReady($event)">
+        </div>
+    </div>
+</div>
+</div>
+
+
+
