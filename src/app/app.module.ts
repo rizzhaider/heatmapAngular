@@ -3,7 +3,8 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { AppComponent } from './app.component';
-
+import { HttpModule } from '@angular/http';
+import { TjxHeatMapService } from './services/tjx_heatmap.service';
 @NgModule({
   declarations: [
     AppComponent
@@ -11,9 +12,12 @@ import { AppComponent } from './app.component';
   imports: [
     BrowserModule,
     FormsModule,      
-    LeafletModule.forRoot()
+    LeafletModule.forRoot(),
+    HttpModule
   ],
-  providers: [],
+  providers: [
+    TjxHeatMapService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

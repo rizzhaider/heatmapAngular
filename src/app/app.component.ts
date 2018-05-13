@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { circle, geoJSON, icon, latLng, Layer, marker, polygon, tileLayer } from 'leaflet'
 import '../../node_modules/leaflet.heat/dist/leaflet-heat.js';
+import { TjxHeatMapService } from './services/tjx_heatmap.service';
 declare var L;
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  
 })
 export class AppComponent implements OnInit {
   gStoreId:number;
@@ -50,12 +52,13 @@ export class AppComponent implements OnInit {
 
     gHeatmapData= [];
   
-  constructor(){
+  constructor(private tjxHeatMapService: TjxHeatMapService){
 
   }
 
   ngOnInit(){
     console.log( this.selectedStore);
+    this.getTjxHeatMapData();
   } 
   
   /** ************************************************************** */
@@ -150,6 +153,17 @@ applyHeatLayer(hscFloormap) {
    apHeatLayer.setLatLngs(this.gHeatmapData);
    apHeatLayer.addTo(hscFloormap);
 }// applyHeatLayer
+
+getTjxHeatMapData(){
+this.tjxHeatMapService.getTjxHeatMapData().subscribe(
+
+  data => {
+    console.log(data);
+  }
+)
+
+}
+
 
 /** ************************************************************** */
 /** ********************** source code *************************** */
