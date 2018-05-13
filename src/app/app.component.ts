@@ -15,6 +15,7 @@ export class AppComponent implements OnInit {
   gStoreLocationMap = new Map();  
   gFloormapBounds = [];
   g_image_layer:any;
+  apPointsPlotted:any;
   markerIcon:any;
   gConfig = { heatmapLowerbound:0,
     heatmapUpperbound: 100,
@@ -54,20 +55,19 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(){
-    
-  }
+    console.log( this.selectedStore);
+  } 
   
+  /** ************************************************************** */
+/** ********************** heatmap code ************************** */
+/** ************************************************************** */
   options = {    
     attributionControl: false,
     dragging: false,
     minZoom: 2,
     maxZoom: 3,
-    crs: L.CRS.Simple,
-    //center: L.latLng([ 46.879966, -121.726909 ])
-
-   
+    crs: L.CRS.Simple
   };
-  
   onStoreChange(selectedStore:any){
     this.selectedStore = selectedStore;
     console.log(this.selectedStore);
@@ -76,11 +76,72 @@ export class AppComponent implements OnInit {
     hscFloormap.eachLayer(function (layer) {
       hscFloormap.removeLayer(layer);
   });
-  }
+  }// removeAllMapLayers
+
   applyImageLayer(imageUrl, hscFloormap) {
     this.g_image_layer.setUrl(imageUrl);
     this.g_image_layer.addTo(hscFloormap);
-}// applyImageLayer
+  }// applyImageLayer
+
+  drawHeatCircle(x, y, intensity, radiusStart, radiusEnd, radius_steps, angle_step){
+    this.apPointsPlotted = 0;
+    if( (x <= this.gConfig.heatmapUpperbound && x >= this.gConfig.heatmapLowerbound)
+        && (y <= this.gConfig.heatmapUpperbound && y >= this.gConfig.heatmapLowerbound)
+        && (radiusEnd <= this.gConfig.heatmapUpperbound)
+        && (radius_steps > 0) && (angle_step > 0)
+        && (radiusStart >= 0 && radiusStart <= 100) ){
+          for(var rad=radiusStart; rad<=radiusEnd; rad+=radius_steps) {	
+             for(var angle=1; angle<=360; angle+=angle_step) {
+                var tmpX = x + rad * Math.cos(angle);
+                var tmpY = y + rad * Math.sin(angle);	           
+                if ((tmpX > this.gConfig.heatmapUpperbound) || (tmpX < this.gConfig.heatmapLowerbound) ||
+                    (tmpY > this.gConfig.heatmapUpperbound) || (tmpY < this.gConfig.heatmapLowerbound)) {
+                    continue;
+                }// if
+                this.gHeatmapData.push([tmpY, tmpX, intensity]);	
+               
+                //thisApPointsPlotted++;
+             }// angle	       
+      }// rad
+       console.log(this.gHeatmapData);
+      return this.apPointsPlotted;
+     }
+  }// drawHeatCircle
+  avgDistanceBwAps(storeLocationMap){	
+    var distance = [];
+    var avgDistance:number;
+     for (var i = 0; i < storeLocationMap.length; i++){
+       var x1 = storeLocationMap[i][0];
+       var y1 = storeLocationMap[i][1];    	   
+       for(var j = i+1; j < storeLocationMap.length; j++ ){
+         var x2 = storeLocationMap[j][0]; 
+         var y2 = storeLocationMap[j][1];    		   
+         var dist = Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2) );
+         distance.push(dist);
+       }    	  
+    } 	    
+     const reducer = (accumulator, currentValue) => accumulator + currentValue;
+     avgDistance = (distance.reduce(reducer)/distance.length);
+     return avgDistance;
+} //avgDistanceBwAps
+
+abbreviateNumber(value) {
+  var newValue = value;
+  if (value >= 1000) {
+      var suffixes = ["", "k", "m", "b","t"];
+      var suffixNum = Math.floor( (""+value).length/3 );
+      var shortValue:number;
+      var shortNum:any;
+      for (var precision = 2; precision >= 1; precision--) {
+          shortValue = parseFloat( (suffixNum != 0 ? (value / Math.pow(1000,suffixNum) ) : value).toPrecision(precision));
+          var dotLessShortValue = (shortValue + '').replace(/[^a-zA-Z 0-9]+/g,'');
+          if (dotLessShortValue.length <= 2) { break; }
+      }
+      if (shortValue % 1 != 0)  shortNum = shortValue.toFixed(1);
+      newValue = shortValue+suffixes[suffixNum];
+  }
+  return newValue;
+}//abbreviateNumber
 
 applyHeatLayer(hscFloormap) {
   var apHeatLayer = L.heatLayer();  
@@ -90,7 +151,9 @@ applyHeatLayer(hscFloormap) {
    apHeatLayer.addTo(hscFloormap);
 }// applyHeatLayer
 
-
+/** ************************************************************** */
+/** ********************** source code *************************** */
+/** ************************************************************** */
 
   onMapReady(hscFloormap: L.Map) {
     this.markerIcon = L.icon({
@@ -141,11 +204,7 @@ applyHeatLayer(hscFloormap) {
       [56.56029689365528, 65.28211614107698, 2],
       [56.526589469752395, 57.66589517843012, 2],
       [49.55964131836704, 54.58862505733322, 2]
-    ]
-  //   L.heatLayer = function (latlngs, options) {
-  //     return new L.HeatLayer(latlngs, options);
-  // };
-  //testData = testData.map(function (p) { return [p[0], p[1]]; });
+    ]  
    this.applyHeatLayer(hscFloormap);
    
   
