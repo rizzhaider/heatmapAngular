@@ -76,11 +76,13 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(){
-    this.bsValueStart = new Date();     
-      this.bsValueStrStart = this.transformDate(this.bsValueStart, 'y-M-d');
+    this.bsValueStart = new Date();
+      this.bsValueStrStart = this.transformDate(this.bsValueStart, 'd/M/y');
+      this.bsDateAPIStrStart = this.transformDate(this.bsValueStart, 'yyyy-MM-dd');
       
       this.bsValueEnd = new Date();
-      this.bsValueStrEnd = this.transformDate(this.bsValueEnd, 'y-M-d'); 
+      this.bsValueStrEnd = this.transformDate(this.bsValueEnd, 'd/M/y');
+      this.bsDateAPIStrEnd = this.transformDate(this.bsValueEnd, 'yyyy-MM-dd'); 
   } 
   
   /** ************************************************************** */
@@ -100,19 +102,23 @@ export class AppComponent implements OnInit {
 });
   onStoreChange(selectedStore:any){
     this.selectedStore = selectedStore;
-    this.getTjxHeatMapData(this.gFloorMap, this.selectedStore, "", "")
+   
     console.log(this.selectedStore);
   }
   onChangeStartdate(){
     this.bsValueStrStart = this.transformDate(this.bsValueStart, 'd/M/y');
-     this.bsDateAPIStrStart = this.transformDate(this.bsValueStart, 'y-M-d');
+     this.bsDateAPIStrStart = this.transformDate(this.bsValueStart, 'yyyy-MM-dd');
      this.minDateEnd = this.bsValueStart;
      //this.getAstroforcelogoutList(this.bsDateAPIStrStart, this.bsDateAPIStrEnd);
    }
    onChangeEnddate(){
     this.bsValueStrEnd = this.transformDate(this.bsValueEnd, 'd/M/y');
-     this.bsDateAPIStrEnd = this.transformDate(this.bsValueEnd, 'y-M-d');
+     this.bsDateAPIStrEnd = this.transformDate(this.bsValueEnd, 'yyyy-MM-dd');
      //this.getAstroforcelogoutList(this.bsDateAPIStrStart, this.bsDateAPIStrEnd);
+   }
+
+   onClickApply(){
+    this.getTjxHeatMapData(this.gFloorMap, this.selectedStore, this.bsDateAPIStrStart, this.bsDateAPIStrEnd);
    }
   removeAllMapLayers(hscFloormap) {
     hscFloormap.eachLayer(function (layer) {
@@ -200,7 +206,7 @@ applyHeatLayer(hscFloormap) {
 getTjxHeatMapData(hscFloormap, storeId, storeDateStart, storeDateEnd){
     this.gStoreLocationMap['TJXM1299'] = this.gApLocationsTJXM1299;
     this.gStoreLocationMap['TJXH0006'] = this.gApLocationsTJXH0006;    
-  this.tjxHeatMapService.getTjxHeatMapData(storeId).subscribe(
+    this.tjxHeatMapService.getTjxHeatMapData(storeId, storeDateStart, storeDateEnd).subscribe(
  data => {
    this.tjxHeatmapDataRes = data;
    this.parseAndFillApData(this.tjxHeatmapDataRes, this.selectedStore, hscFloormap)
