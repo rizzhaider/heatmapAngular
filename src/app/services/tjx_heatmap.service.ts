@@ -9,9 +9,10 @@ export class TjxHeatMapService {
     private getTjxHeatMApURL = this.baseURL + '/api-tjx/heatMapData';
     constructor(private http: Http) { }
     
-    getTjxHeatMapData() {
+    getTjxHeatMapData(storeId:any) {
+        console.log(storeId);
         let _getTjxHeatMApURL = this.getTjxHeatMApURL;
-        _getTjxHeatMApURL = _getTjxHeatMApURL + '?startDate=2018-04-20' + '&endDate=2018-04-22' + '&storeId=TJXM1299';
+        _getTjxHeatMApURL = _getTjxHeatMApURL + '?startDate=2018-04-20' + '&endDate=2018-04-22' + '&storeId=' + storeId;
         console.log(_getTjxHeatMApURL);
         //let options = new RequestOptions({ headers: headers });
         return this.http.get(_getTjxHeatMApURL)

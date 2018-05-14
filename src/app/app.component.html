@@ -1,17 +1,58 @@
 <div class="container">
 <div class="row">
-    <div class="col-sm-4 col-md-4 col-lg-4">
-        <select class="form-control" [(ngModel)] = "selectedStore" name="selectedStore" (change) = "onStoreChange(selectedStore)"> 
-            <option *ngFor="let gStoreDropdownMap of gStoreDropdownMaps"  [ngValue]="gStoreDropdownMap.storeId"> {{gStoreDropdownMap.name}} </option>
-        </select>
+    <div class="col-sm-4 col-md-4">
+            <div class="form-group ">
+               <div class="input-group">
+                    <div class="input-group-prepend">
+                      <label class="input-group-text" for="inputGroupSelect01">select store</label>
+                    </div>
+                    <select [(ngModel)] = "selectedStore" name="selectedStore" (change) = "onStoreChange(selectedStore)" class="custom-select" id="inputGroupSelect01">
+                            <option *ngFor="let gStoreDropdownMap of gStoreDropdownMaps"  [ngValue]="gStoreDropdownMap.storeId"> {{gStoreDropdownMap.name}} </option>
+                    </select>
+                  </div>
+            </div> 
+    </div>
+   
+    <div class="col-sm-6 col-md-3">
+        <div class="form-group ">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1" (click)="dpStart.toggle()"><i class="fa fa-calendar"></i></span>
+                </div>
+                <input class="form-control"  type="text"
+                class="form-control"
+                [minDate]="minDateStart"
+                [maxDate]="maxDateStart"               
+                #dpStart="bsDatepicker"                
+                value = "{{bsDateAPIStrStart}}" 
+                bsDatepicker [(bsValue)]="bsValueStart" (bsValueChange) = "onChangeStartdate()" aria-describedby="basic-addon1" readonly>                
+              </div>
+          </div>
+    </div>
+    
+    <div class="col-sm-6 col-md-3">
+        <div class="form-group ">
+               
+              <div class="input-group">
+                <div class="input-group-prepend">
+                <span class="input-group-text" (click)="dpEnd.toggle()"><i class="fa fa-calendar"></i></span>
+                </div>
+                <input class="form-control"  type="text"
+                class="form-control"
+                [minDate]="minDateEnd"
+                [maxDate]="maxDateEnd"               
+                #dpEnd="bsDatepicker"                
+                value = "{{bsDateAPIStrEnd}}" 
+                bsDatepicker [(bsValue)]="bsValueEnd" (bsValueChange) = "onChangeEnddate()" readonly>                
+              </div>            
+          </div>
     </div>
 </div>
-<p>&nbsp;</p>
 <div class="row">
     <div class="col-sm-12 col-md-12 col-lg-12">
         <div id="hsc_map"
             leaflet
-            [leafletOptions]="options"
+            [leafletOptions]="hsc_lab"
             (leafletMapReady)="onMapReady($event)">
         </div>
     </div>

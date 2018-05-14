@@ -5,6 +5,8 @@ import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { AppComponent } from './app.component';
 import { HttpModule } from '@angular/http';
 import { TjxHeatMapService } from './services/tjx_heatmap.service';
+import { BsDatepickerModule } from 'ngx-bootstrap';
+import { DatePipe } from '@angular/common';
 @NgModule({
   declarations: [
     AppComponent
@@ -13,10 +15,12 @@ import { TjxHeatMapService } from './services/tjx_heatmap.service';
     BrowserModule,
     FormsModule,      
     LeafletModule.forRoot(),
+    BsDatepickerModule.forRoot(),
     HttpModule
   ],
   providers: [
-    TjxHeatMapService
+    TjxHeatMapService,
+    DatePipe
   ],
   bootstrap: [AppComponent]
 })

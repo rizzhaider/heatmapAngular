@@ -4,3 +4,9 @@
   background: none;
   z-index: 1 !important;
 }
+.bs-datepicker{    
+  z-index: 99999999999!important;
+}
+.container{
+  padding-top: 5px;
+}

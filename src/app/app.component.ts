@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { circle, geoJSON, icon, latLng, Layer, marker, polygon, tileLayer } from 'leaflet'
 import '../../node_modules/leaflet.heat/dist/leaflet-heat.js';
 import { TjxHeatMapService } from './services/tjx_heatmap.service';
+import { TjxHeatMapData } from './shared/model/tjxHeatMapData.model.js';
+import { Options } from './shared/model/options.model.js';
+import { DatePipe } from '@angular/common';
 declare var L;
 @Component({
   selector: 'app-root',
@@ -10,19 +13,34 @@ declare var L;
   
 })
 export class AppComponent implements OnInit {
-  gStoreId:number;
-  gStoreDateStart:string;
-  gStoreDateEnd:string;
+  public tjxHeatmapDataRes:TjxHeatMapData[];
+  public options:Options = new Options();
+  public gFloorMap:any;
+  bsValueStart: Date;
+  maxDateStart: Date; 
+  bsValueStrStart: string;
+  bsDateAPIStrStart: string;
+  minDateEnd:Date;
+  bsValueEnd: Date;
+  maxDateEnd: Date; 
+  bsValueStrEnd: string;
+  bsDateAPIStrEnd: string;
+
+  transformDate(date, format) {
+   return this.datePipe.transform(date, format);
+  }
   //gStoreDropdownMap = new Map();
   gStoreLocationMap = new Map();  
   gFloormapBounds = [];
-  g_image_layer:any;
+  g_image_layer:any;  
   apPointsPlotted:any;
-  markerIcon:any;
+  
+  gApLocationsTJXM1299 = [ [50.67, 61.50], [55.65, 42.55], [27.60, 47.50], [25.65, 66.80]];
+  gApLocationsTJXH0006 = [[72.90, 80], [47.50, 62], [47.65, 24]];
   gConfig = { heatmapLowerbound:0,
     heatmapUpperbound: 100,
     gradientDensity: {gradient: {0.1: 'lime', 0.7:'yellow',  0.8: 'orange', 1.0: '#E74C3C'}},
-    gradientOptions: {max: 10 },
+    gradientOptions: {max:10, radius:'', blur:'' },
     heatIntensity:2,	         
     coverageIntensity:0.2,	 
     mediumStoreApCountMin:5,
@@ -48,33 +66,54 @@ export class AppComponent implements OnInit {
       {name: "Marshalls 1299", storeId: 'TJXM1299' },
       {name: "HomeSense 6", storeId: 'TJXH0006' }     
     ]
-    public selectedStore:any = this.gStoreDropdownMaps[0].storeId;
+    public selectedStore = this.gStoreDropdownMaps[0].storeId;
 
     gHeatmapData= [];
   
-  constructor(private tjxHeatMapService: TjxHeatMapService){
-
+  constructor(private tjxHeatMapService: TjxHeatMapService, private datePipe: DatePipe){
+    this.maxDateStart = new Date();
+      this.maxDateEnd = new Date();   
   }
 
   ngOnInit(){
-    console.log( this.selectedStore);
-    this.getTjxHeatMapData();
+    this.bsValueStart = new Date();     
+      this.bsValueStrStart = this.transformDate(this.bsValueStart, 'y-M-d');
+      
+      this.bsValueEnd = new Date();
+      this.bsValueStrEnd = this.transformDate(this.bsValueEnd, 'y-M-d'); 
   } 
   
   /** ************************************************************** */
 /** ********************** heatmap code ************************** */
 /** ************************************************************** */
-  options = {    
+  hsc_lab = {    
     attributionControl: false,
     dragging: false,
     minZoom: 2,
     maxZoom: 3,
     crs: L.CRS.Simple
   };
+  markerIcon = L.icon({
+    iconUrl: './assets/img/map_marker.png',   
+    iconSize:     [32, 32], // size of the icon   
+    iconAnchor:   [15, 18], // point of the icon which will correspond to marker's location
+});
   onStoreChange(selectedStore:any){
     this.selectedStore = selectedStore;
+    this.getTjxHeatMapData(this.gFloorMap, this.selectedStore, "", "")
     console.log(this.selectedStore);
   }
+  onChangeStartdate(){
+    this.bsValueStrStart = this.transformDate(this.bsValueStart, 'd/M/y');
+     this.bsDateAPIStrStart = this.transformDate(this.bsValueStart, 'y-M-d');
+     this.minDateEnd = this.bsValueStart;
+     //this.getAstroforcelogoutList(this.bsDateAPIStrStart, this.bsDateAPIStrEnd);
+   }
+   onChangeEnddate(){
+    this.bsValueStrEnd = this.transformDate(this.bsValueEnd, 'd/M/y');
+     this.bsDateAPIStrEnd = this.transformDate(this.bsValueEnd, 'y-M-d');
+     //this.getAstroforcelogoutList(this.bsDateAPIStrStart, this.bsDateAPIStrEnd);
+   }
   removeAllMapLayers(hscFloormap) {
     hscFloormap.eachLayer(function (layer) {
       hscFloormap.removeLayer(layer);
@@ -103,10 +142,10 @@ export class AppComponent implements OnInit {
                 }// if
                 this.gHeatmapData.push([tmpY, tmpX, intensity]);	
                
-                //thisApPointsPlotted++;
+                this.apPointsPlotted++;
              }// angle	       
       }// rad
-       console.log(this.gHeatmapData);
+       //console.log(this.gHeatmapData);
       return this.apPointsPlotted;
      }
   }// drawHeatCircle
@@ -154,73 +193,139 @@ applyHeatLayer(hscFloormap) {
    apHeatLayer.addTo(hscFloormap);
 }// applyHeatLayer
 
-getTjxHeatMapData(){
-this.tjxHeatMapService.getTjxHeatMapData().subscribe(
-
-  data => {
-    console.log(data);
-  }
-)
-
-}
-
-
 /** ************************************************************** */
 /** ********************** source code *************************** */
 /** ************************************************************** */
 
-  onMapReady(hscFloormap: L.Map) {
-    this.markerIcon = L.icon({
-      iconUrl: './assets/img/map_marker.png',   
-      iconSize:     [32, 32], // size of the icon   
-      iconAnchor:   [15, 18], // point of the icon which will correspond to marker's location
-  });
+getTjxHeatMapData(hscFloormap, storeId, storeDateStart, storeDateEnd){
+    this.gStoreLocationMap['TJXM1299'] = this.gApLocationsTJXM1299;
+    this.gStoreLocationMap['TJXH0006'] = this.gApLocationsTJXH0006;    
+  this.tjxHeatMapService.getTjxHeatMapData(storeId).subscribe(
+ data => {
+   this.tjxHeatmapDataRes = data;
+   this.parseAndFillApData(this.tjxHeatmapDataRes, this.selectedStore, hscFloormap)
+   console.log(this.tjxHeatmapDataRes);
+ }, error => {
+   
+ }
+)
+}
+
+parseAndFillApData(apJsonData, storeId , hscFloormap) { 
+  console.log( this.gStoreLocationMap[storeId]);
   this.removeAllMapLayers(hscFloormap);
-    var x = 50;
-    var y = 50;    
-   
-    this.gFloormapBounds = [[this.gConfig.heatmapLowerbound, this.gConfig.heatmapLowerbound], [this.gConfig.heatmapUpperbound, this.gConfig.heatmapUpperbound]];
-    this.g_image_layer = L.imageOverlay('', this.gFloormapBounds);
-    this.applyImageLayer('./assets/img/TJXH0006.png', hscFloormap);    
-    hscFloormap.fitBounds(this.gFloormapBounds);   
-    var tooltipData = "<b>"+"ap1"+"</b>";
-    var circle = L.circle([y,x], {
-            radius: 10,
-            // color: 'green',
-            fillOpacity: 0,
-            stroke: false,
-        }).addTo(hscFloormap);
-    circle.bindTooltip(tooltipData, {sticky: true }).addTo(hscFloormap);
-    var marker = L.marker([y, x], {
-      icon: this.markerIcon,        	
-      }).addTo(hscFloormap);        
-    marker.bindTooltip(tooltipData, {sticky: true }).addTo(hscFloormap);
-    
-    this.gHeatmapData = [
-      [51.5114709848079, 62.04030230586814, 2],
-      [51.50665563853606, 60.952270739775734, 2],
-      [50.51137733119529, 60.51266072247618, 2],
-      [49.703882229991606, 61.24189836406173, 2],
-      [50.04011200572555, 62.27668598202163, 2],
-      [51.12202578717835, 62.39200486978816, 2],
-      [51.66881522472358, 61.451336390799845, 2],
-      [51.03317136537326, 60.56827763825648, 2],
-      [49.96759221442263, 60.78822524436428, 2],
-      [49.733548599882354, 61.850797342090424, 2],
-      [50.60810974928128, 62.49808296091356, 2],
-      [51.55593879787876, 61.96380216301042, 2],
-      [51.454961713276404, 60.88045572499605, 2],
-      [50.42471879091806, 60.53054802673299, 2],
-      [49.68484856367112, 61.32831235484423, 2],
-      [50.111235950410915, 62.329326676820905, 2],
-      [51.199108265481854, 62.34855432554362, 2],
-      [51.66060323338978, 61.36323292063612, 2],
-      [56.56029689365528, 65.28211614107698, 2],
-      [56.526589469752395, 57.66589517843012, 2],
-      [49.55964131836704, 54.58862505733322, 2]
-    ]  
-   this.applyHeatLayer(hscFloormap);
-   
+  this.gHeatmapData = [];
+  var storeImgUrl = this.getImageUrlFromStoreId(storeId);   
+  try{
+      this.applyImageLayer(storeImgUrl, hscFloormap);
+  } catch(e) {
+      console.error("applyImageLayer exception: "+e);
+  }
   
+  var totalAp = [];
+  var totalCount = 0;
+  for (var eachApIndex = 0; eachApIndex < this.gStoreLocationMap[storeId].length;  eachApIndex++) {
+      var thisApCount = parseInt(apJsonData[eachApIndex].footFall);
+      totalCount += thisApCount; 
+      totalAp.push(apJsonData[eachApIndex]);
+  }
+  var totalPointsPlotted = 0; 
+  var avgDistance = this.avgDistanceBwAps(this.gStoreLocationMap[storeId]);
+  var heatRadius, heatAngleStep, coverageRadius, coverageRadiusStep, coverageAngleStep, gradientBlur;
+  
+  if(totalAp.length < this.gConfig.mediumStoreApCountMin){
+        if(avgDistance >= this.gConfig.lowApCountBucket.bucket1.apDistanceMin && avgDistance <= this.gConfig.lowApCountBucket.bucket1.apDistanceMax){ 
+          this.options = this.gConfig.lowApCountBucket.bucket1;
+        }else if(avgDistance >= this.gConfig.lowApCountBucket.bucket2.apDistanceMin && avgDistance <= this.gConfig.lowApCountBucket.bucket2.apDistanceMax){
+          this.options = this.gConfig.lowApCountBucket.bucket2;
+        }else {
+          this.options = this.gConfig.lowApCountBucket.bucket3;
+        }   
+  }else if(totalAp.length > this.gConfig.mediumStoreApCountMax){
+       if(avgDistance >= this.gConfig.largeApCountBucket.bucket1.apDistanceMin && avgDistance <= this.gConfig.largeApCountBucket.bucket1.apDistanceMax){
+        this.options = this.gConfig.largeApCountBucket.bucket1;
+        }else if(avgDistance >= this.gConfig.largeApCountBucket.bucket2.apDistanceMin && avgDistance <= this.gConfig.largeApCountBucket.bucket2.apDistanceMax){
+          this.options = this.gConfig.largeApCountBucket.bucket2;
+        }else {
+          this.options = this.gConfig.largeApCountBucket.bucket3;
+     }   
+  }else{
+    if(avgDistance >= this.gConfig.mediumApCountBucket.bucket1.apDistanceMin && avgDistance <= this.gConfig.mediumApCountBucket.bucket1.apDistanceMax){
+      this.options = this.gConfig.mediumApCountBucket.bucket1;
+        }else if(avgDistance >= this.gConfig.mediumApCountBucket.bucket2.apDistanceMin && avgDistance <= this.gConfig.mediumApCountBucket.bucket2.apDistanceMax){
+          this.options = this.gConfig.mediumApCountBucket.bucket2;
+        }else {
+          this.options = this.gConfig.mediumApCountBucket.bucket3;
+     }   
+  }  
+  console.log(this.options);
+  heatRadius = this.options.heatRadius;
+  heatAngleStep = this.options.heatAngleStep; 
+  coverageRadius = this.options.coverageRadius;
+  coverageRadiusStep = this.options.coverageRadiusStep;
+  coverageAngleStep = this.options.coverageAngleStep;
+  gradientBlur = this.options.gradientBlur;
+  
+  this.gConfig.gradientOptions.radius = heatRadius;  //adding radius in gradient option
+  this.gConfig.gradientOptions.blur = gradientBlur; //adding blur in gradient option
+
+  for(var eachApIndex = 0; eachApIndex < this.gStoreLocationMap[storeId].length;  eachApIndex++){
+      var x = this.gStoreLocationMap[storeId][eachApIndex][1];
+      var y = this.gStoreLocationMap[storeId][eachApIndex][0];       
+      var thisApCount = parseInt(apJsonData[eachApIndex].footFall);
+      var percentageCount = ((100*thisApCount) / totalCount);
+      // higher the percentage, lower the steps. so, lower the steps, more the
+  // num of points plotted        
+      var heatRadiusSteps = ((100 - percentageCount)/10);
+      this.apPointsPlotted = 0;
+                 // drawHeatCircle(x, y, intensity,                 radiusStart,                     radiusEnd                 radius_steps,     angle_step)
+      //this is for heat
+      this.apPointsPlotted = this.drawHeatCircle(x, y, this.gConfig.heatIntensity,     this.gConfig.heatmapLowerbound+1,     coverageRadius,          heatRadiusSteps,    heatAngleStep); // ap heat circle
+      totalPointsPlotted += this.apPointsPlotted;
+      
+      //this is for coverage
+      this.apPointsPlotted = this.drawHeatCircle(x, y, this.gConfig.coverageIntensity, coverageRadius,                 this.gConfig.heatmapUpperbound, coverageRadiusStep, coverageAngleStep); // ap coverage  circle
+      totalPointsPlotted += this.apPointsPlotted; 
+      /* tooltip code */
+      var avgDwellTime = +(apJsonData[eachApIndex].averageTime/60).toFixed(2); // divide by 60 to convert in minute
+      var totalFootFall =  this.abbreviateNumber(apJsonData[eachApIndex].footFall); // convert footFall number in to abbreviated Number(k, m, b, t)
+      var tooltipData = "<b>"+apJsonData[eachApIndex].ap_name+"</b>";       
+      tooltipData += "<br> Footfall: "+ totalFootFall;
+      // tooltipData += "<br> Total Dwell Time (mins):
+  // "+parseInt(apJsonData[eachApIndex].dwellTime * 10 / 60)/10;
+      tooltipData += "<br> Average Dwell Time (mins): "+avgDwellTime; 
+      var circle = L.circle([y,x], {
+              radius: coverageRadius,
+              // color: 'green',
+              fillOpacity: 0,
+              stroke: false,
+          }).addTo(hscFloormap);
+      circle.bindTooltip(tooltipData, {sticky: true }).addTo(hscFloormap);
+      
+      var marker = L.marker([y, x], {
+        icon: this.markerIcon,        	
+        }).addTo(hscFloormap);        
+      marker.bindTooltip(tooltipData, {sticky: true }).addTo(hscFloormap);
+      
+      
+     } // for eachApIndex
+ 
+ 
+  this.applyHeatLayer(hscFloormap);
+}// parseAndFillApData
+
+
+
+getImageUrlFromStoreId(storeId) {	 
+	return "./assets/img/"+storeId+".png";	
+}// getImageUrlFromStoreId
+
+
+  onMapReady(hscFloormap: L.Map) {   
+     this.gFloorMap = hscFloormap;
+    this.gFloormapBounds = [[this.gConfig.heatmapLowerbound, this.gConfig.heatmapLowerbound], [this.gConfig.heatmapUpperbound, this.gConfig.heatmapUpperbound]];
+    this.g_image_layer = L.imageOverlay('', this.gFloormapBounds);   
+    hscFloormap.fitBounds(this.gFloormapBounds);   
+    this.getTjxHeatMapData(this.gFloorMap, this.selectedStore, "", "");
 }
 }
