@@ -4,18 +4,17 @@ import { Http, Headers, Response, RequestOptions } from '@angular/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 @Injectable()
-export class TjxHeatMapService {
+export class TjxMinMaxDateService {
     private baseURL = environment.baseBZURI;
-    private getTjxHeatMapURL = this.baseURL + '/api-tjx/heatMapData';
-    constructor(private http: Http) { }
-    
-    getTjxHeatMapData(storeId:any, storeDateStart:any, storeDateEnd:any) {
+    private getTjxMinMaxDateURL = this.baseURL + '/api-tjx/max-min-date';
+    constructor(private http: Http) { }    
+    getTjxMinMaxDate(storeId:any) {
         console.log(storeId);
-        let _getTjxHeatMapURL = this.getTjxHeatMapURL;
-        _getTjxHeatMapURL = _getTjxHeatMapURL + '?startDate=' + storeDateStart + '&endDate=' + storeDateEnd + '&storeId=' + storeId;
-        console.log(_getTjxHeatMapURL);
+        let _getTjxMinMaxDateURL = this.getTjxMinMaxDateURL;
+        _getTjxMinMaxDateURL = _getTjxMinMaxDateURL + '?storeId=' + storeId;
+        console.log(_getTjxMinMaxDateURL);
         //let options = new RequestOptions({ headers: headers });
-        return this.http.get(_getTjxHeatMapURL)
+        return this.http.get(_getTjxMinMaxDateURL)
             .pipe(map((response: Response) => {
                 let data = response.json();
                 console.log(data);

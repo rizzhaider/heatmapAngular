@@ -5,6 +5,8 @@ import { TjxHeatMapService } from './services/tjx_heatmap.service';
 import { TjxHeatMapData } from './shared/model/tjxHeatMapData.model.js';
 import { Options } from './shared/model/options.model.js';
 import { DatePipe } from '@angular/common';
+import { TjxMinMaxDateService } from './services/tjx_min_max_date.service';
+import { TjxMinMaxDate } from './shared/model/tjxMinMaxDate.model.js';
 declare var L;
 @Component({
   selector: 'app-root',
@@ -13,19 +15,22 @@ declare var L;
   
 })
 export class AppComponent implements OnInit {
+  
   public tjxHeatmapDataRes:TjxHeatMapData[];
+  public tjxMinMaxDateRes:TjxMinMaxDate = new TjxMinMaxDate();
   public options:Options = new Options();
   public gFloorMap:any;
-  bsValueStart: Date;
-  maxDateStart: Date; 
-  bsValueStrStart: string;
-  bsDateAPIStrStart: string;
-  minDateEnd:Date;
-  bsValueEnd: Date;
-  maxDateEnd: Date; 
-  bsValueStrEnd: string;
-  bsDateAPIStrEnd: string;
-
+  public bsValueStart: Date;
+  public maxDateStart: Date; 
+  public bsValueStrStart: string;
+  public bsDateAPIStrStart: string;
+  public minDateStart:Date;
+  public minDateEnd:Date;
+  public bsValueEnd: Date;
+  public maxDateEnd: Date; 
+  public bsValueStrEnd: string;
+  public bsDateAPIStrEnd: string;
+   mindaada:string
   transformDate(date, format) {
    return this.datePipe.transform(date, format);
   }
@@ -33,8 +38,7 @@ export class AppComponent implements OnInit {
   gStoreLocationMap = new Map();  
   gFloormapBounds = [];
   g_image_layer:any;  
-  apPointsPlotted:any;
-  
+  apPointsPlotted:any;  
   gApLocationsTJXM1299 = [ [50.67, 61.50], [55.65, 42.55], [27.60, 47.50], [25.65, 66.80]];
   gApLocationsTJXH0006 = [[72.90, 80], [47.50, 62], [47.65, 24]];
   gConfig = { heatmapLowerbound:0,
@@ -70,20 +74,20 @@ export class AppComponent implements OnInit {
 
     gHeatmapData= [];
   
-  constructor(private tjxHeatMapService: TjxHeatMapService, private datePipe: DatePipe){
-    this.maxDateStart = new Date();
-      this.maxDateEnd = new Date();   
+  constructor(private tjxHeatMapService: TjxHeatMapService, 
+              private datePipe: DatePipe,
+              private tjxMinMaxDateService:TjxMinMaxDateService){
+              
   }
 
   ngOnInit(){
-    this.bsValueStart = new Date();
-      this.bsValueStrStart = this.transformDate(this.bsValueStart, 'd/M/y');
-      this.bsDateAPIStrStart = this.transformDate(this.bsValueStart, 'yyyy-MM-dd');
-      
-      this.bsValueEnd = new Date();
-      this.bsValueStrEnd = this.transformDate(this.bsValueEnd, 'd/M/y');
-      this.bsDateAPIStrEnd = this.transformDate(this.bsValueEnd, 'yyyy-MM-dd'); 
+    
+    this.getFromDateToEndDate(this.selectedStore);
+   console.log(this.bsDateAPIStrStart)
+    this.getConfigureData();
+   
   } 
+  
   
   /** ************************************************************** */
 /** ********************** heatmap code ************************** */
@@ -101,8 +105,7 @@ export class AppComponent implements OnInit {
     iconAnchor:   [15, 18], // point of the icon which will correspond to marker's location
 });
   onStoreChange(selectedStore:any){
-    this.selectedStore = selectedStore;
-   
+    this.selectedStore = selectedStore;   
     console.log(this.selectedStore);
   }
   onChangeStartdate(){
@@ -118,7 +121,7 @@ export class AppComponent implements OnInit {
    }
 
    onClickApply(){
-    this.getTjxHeatMapData(this.gFloorMap, this.selectedStore, this.bsDateAPIStrStart, this.bsDateAPIStrEnd);
+    this.getTjxHeatMapData(this.selectedStore, this.bsDateAPIStrStart, this.bsDateAPIStrEnd);
    }
   removeAllMapLayers(hscFloormap) {
     hscFloormap.eachLayer(function (layer) {
@@ -203,22 +206,45 @@ applyHeatLayer(hscFloormap) {
 /** ********************** source code *************************** */
 /** ************************************************************** */
 
-getTjxHeatMapData(hscFloormap, storeId, storeDateStart, storeDateEnd){
+getTjxHeatMapData( storeId, storeDateStart, storeDateEnd){ 
     this.gStoreLocationMap['TJXM1299'] = this.gApLocationsTJXM1299;
     this.gStoreLocationMap['TJXH0006'] = this.gApLocationsTJXH0006;    
     this.tjxHeatMapService.getTjxHeatMapData(storeId, storeDateStart, storeDateEnd).subscribe(
  data => {
    this.tjxHeatmapDataRes = data;
-   this.parseAndFillApData(this.tjxHeatmapDataRes, this.selectedStore, hscFloormap)
+   this.parseAndFillApData(this.tjxHeatmapDataRes, this.selectedStore, this.gFloorMap)
    console.log(this.tjxHeatmapDataRes);
  }, error => {
    
  }
 )
-}
+}//getTjxHeatMapData
 
+getFromDateToEndDate(storeId){
+  this.tjxMinMaxDateService.getTjxMinMaxDate(storeId).subscribe(
+    data => {
+      this.tjxMinMaxDateRes = data;
+      this.maxDateStart = new Date(this.tjxMinMaxDateRes.maxDate);
+      this.maxDateEnd = new Date(this.tjxMinMaxDateRes.maxDate); 
+      this.minDateStart = new Date(this.tjxMinMaxDateRes.minDate);
+      this.minDateEnd = new Date(this.tjxMinMaxDateRes.minDate);
+
+      this.bsValueStart = new Date(this.tjxMinMaxDateRes.maxDate);
+      this.bsValueStrStart = this.transformDate(this.bsValueStart, 'd/M/y');
+      this.bsDateAPIStrStart = this.transformDate(this.bsValueStart, 'yyyy-MM-dd');
+
+      this.bsValueEnd = new Date(this.tjxMinMaxDateRes.maxDate);
+      this.bsValueStrEnd = this.transformDate(this.bsValueEnd, 'd/M/y');
+      this.bsDateAPIStrEnd = this.transformDate(this.bsValueEnd, 'yyyy-MM-dd');
+     
+    }
+  )
+}//getFromDateToEndDate
+getConfigureData(){
+  this.getTjxHeatMapData(this.selectedStore, this.bsDateAPIStrStart,  this.bsDateAPIStrEnd);
+  }
 parseAndFillApData(apJsonData, storeId , hscFloormap) { 
-  console.log( this.gStoreLocationMap[storeId]);
+  
   this.removeAllMapLayers(hscFloormap);
   this.gHeatmapData = [];
   var storeImgUrl = this.getImageUrlFromStoreId(storeId);   
@@ -327,11 +353,11 @@ getImageUrlFromStoreId(storeId) {
 }// getImageUrlFromStoreId
 
 
-  onMapReady(hscFloormap: L.Map) {   
-     this.gFloorMap = hscFloormap;
+  onMapReady(hscFloormap: L.Map) {     
+    this.gFloorMap = hscFloormap;
     this.gFloormapBounds = [[this.gConfig.heatmapLowerbound, this.gConfig.heatmapLowerbound], [this.gConfig.heatmapUpperbound, this.gConfig.heatmapUpperbound]];
     this.g_image_layer = L.imageOverlay('', this.gFloormapBounds);   
     hscFloormap.fitBounds(this.gFloormapBounds);   
-    this.getTjxHeatMapData(this.gFloorMap, this.selectedStore, "", "");
+     
 }
 }

@@ -5,6 +5,7 @@ import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { AppComponent } from './app.component';
 import { HttpModule } from '@angular/http';
 import { TjxHeatMapService } from './services/tjx_heatmap.service';
+import { TjxMinMaxDateService } from './services/tjx_min_max_date.service';
 import { BsDatepickerModule } from 'ngx-bootstrap';
 import { DatePipe } from '@angular/common';
 @NgModule({
@@ -20,6 +21,7 @@ import { DatePipe } from '@angular/common';
   ],
   providers: [
     TjxHeatMapService,
+    TjxMinMaxDateService,
     DatePipe
   ],
   bootstrap: [AppComponent]
