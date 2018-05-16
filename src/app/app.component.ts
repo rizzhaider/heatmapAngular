@@ -83,7 +83,7 @@ export class AppComponent implements OnInit {
   ngOnInit(){
     
     this.getFromDateToEndDate(this.selectedStore);
-   console.log(this.bsDateAPIStrStart)
+    console.log(this.tjxMinMaxDateRes)
     this.getConfigureData();
    
   } 
