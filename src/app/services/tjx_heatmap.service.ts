@@ -10,7 +10,7 @@ export class TjxHeatMapService {
     constructor(private http: Http) { }
     
     getTjxHeatMapData(storeId:any, storeDateStart:any, storeDateEnd:any) {
-        console.log(storeId);
+        //console.log(storeId);
         let _getTjxHeatMapURL = this.getTjxHeatMapURL;
         _getTjxHeatMapURL = _getTjxHeatMapURL + '?startDate=' + storeDateStart + '&endDate=' + storeDateEnd + '&storeId=' + storeId;
         console.log(_getTjxHeatMapURL);
@@ -18,7 +18,7 @@ export class TjxHeatMapService {
         return this.http.get(_getTjxHeatMapURL)
             .pipe(map((response: Response) => {
                 let data = response.json();
-                console.log(data);
+                //console.log(data);
                 return data;
             })).pipe(catchError((error: any) => Observable.throw(error.json().error || 'server error')));
 
