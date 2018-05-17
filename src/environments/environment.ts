@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   envname: 'dev', 
-  baseBZURI:'https://analytics.hsc.com'
+  baseURL:'https://analytics.hsc.com'
 };
 
 /*

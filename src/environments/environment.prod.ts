@@ -1,3 +1,5 @@
 export const environment = {
-  production: true
+  production: true,
+  envname: 'dev', 
+  baseURL:'https://analytics.hsc.com'
 };

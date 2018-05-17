@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 @Injectable()
 export class TjxHeatMapService {
-    private baseURL = environment.baseBZURI;
+    private baseURL = environment.baseURL;
     private getTjxHeatMapURL = this.baseURL + '/api-tjx/heatMapData';
     constructor(private http: Http) { }
     

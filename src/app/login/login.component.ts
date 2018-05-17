@@ -17,20 +17,19 @@ export class LoginComponent implements OnInit {
 
   ngOnInit() {
   }
-  login(form: NgForm) {
-    
+  login(form: NgForm) {   
     const _username = form.value.username;
     const _password = form.value.password;
-
+    
     this.authenticationService.login(_username, _password)
     .subscribe(
                 data => {
                    console.log('Received login response', data);
-                    if (data.success) {
-                        this.router.navigate(['home']);
+                    if (data) {
+                        this.router.navigate(['tjx']);
                     } else {
                       
-                        console.log(data.errorMsg);
+                        console.log(data);
                     }
                 },
        error => {

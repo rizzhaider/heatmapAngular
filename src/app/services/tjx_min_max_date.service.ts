@@ -7,7 +7,7 @@ import 'rxjs/add/operator/toPromise';
 @Injectable()
 export class TjxMinMaxDateService {
     //results:any;
-    private baseURL = environment.baseBZURI;
+    private baseURL = environment.baseURL;
     private getTjxMinMaxDateURL = this.baseURL + '/api-tjx/max-min-date';
     constructor(private http: Http) { }    
      getTjxMinMaxDate(storeId:any) {      

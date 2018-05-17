@@ -7,6 +7,7 @@ import { LoginComponent } from './login/login.component';
 import { HeatmapTjxComponent } from './heatmap-tjx/heatmap-tjx.component'
 import { AuthGuard } from './gaurds/auth.gaurds';
 import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
 import { TjxHeatMapService } from './services/tjx_heatmap.service';
 import { TjxMinMaxDateService } from './services/tjx_min_max_date.service';
 import { AuthenticationService } from './services/authentication.service';
@@ -32,7 +33,8 @@ const appRoutes: Routes = [
     FormsModule,      
     LeafletModule.forRoot(),
     BsDatepickerModule.forRoot(),
-    HttpModule
+    HttpModule,
+    HttpClientModule
   ],
   providers: [
     TjxHeatMapService,

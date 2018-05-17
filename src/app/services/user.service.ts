@@ -6,15 +6,15 @@ export class UserService {
   constructor() { }
 
 
-    saveUser(id: string):void{
+    saveUser():void{
 
-      localStorage.setItem('currentUserId', id);
+      sessionStorage.setItem('heatmap_tjx_isLoggedIn',  'true');
     }
     getUser(): string{
-       return localStorage.getItem('currentUserId');
+       return sessionStorage.getItem('heatmap_tjx_isLoggedIn');
   }
        clearUser():void{
-        localStorage.removeItem('currentUserId');
+        sessionStorage.removeItem('heatmap_tjx_isLoggedIn');
      
   }
   
